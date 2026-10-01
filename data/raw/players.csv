@@ -1,0 +1,9 @@
+name,age,nationality,team,position,market_value,pace,acceleration,stamina,strength,dribbling,passing,crossing,shooting,tackling,positioning,vision,work_rate
+Lamine Yamal,19,Spain,FC Barcelona,RW,150.0,91,93,82,65,92,86,84,81,35,78,89,80
+Pedri,23,Spain,FC Barcelona,CM,100.0,78,80,88,68,89,92,80,75,68,85,94,85
+Gavi,22,Spain,FC Barcelona,CM,90.0,82,84,95,76,83,84,72,71,82,84,82,95,95
+Jude Bellingham,23,England,Real Madrid,CM,180.0,85,86,90,88,88,86,78,87,77,88,88,90
+Kylian Mbappé,27,France,Real Madrid,ST,180.0,97,98,84,78,92,80,75,93,30,88,82,75
+Ronald Araújo,27,Uruguay,FC Barcelona,CB,70.0,86,84,82,90,60,65,45,40,89,88,60,85
+Federico Valverde,28,Uruguay,Real Madrid,CM,120.0,90,88,98,82,81,85,82,84,80,85,84,98
+Nico Williams,24,Spain,Athletic Club,LW,70.0,94,95,81,68,88,78,80,76,38,76,79,80
