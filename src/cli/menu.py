@@ -73,6 +73,7 @@ def start_cli():
         print("1. 📋 Listar todos los jugadores")
         print("2. 🔍 Ver detalle de un jugador")
         print("3. 📥 Importar jugadores desde CSV (data/raw/players.csv)")
+        print("4. 🎯 Scouting por Perfil Táctico")
         print("0. 🚪 Salir")
         
         choice = input("\nSelecciona una opción: ").strip()
@@ -84,6 +85,8 @@ def start_cli():
         elif choice == "3":
             from src.utils.csv_importer import import_players_from_csv
             import_players_from_csv("data/raw/players.csv")
+        elif choice == "4":
+            scouting_menu()
         elif choice == "0":
             print("\n👋 ¡Hasta pronto scout!\n")
             break
@@ -93,3 +96,44 @@ def start_cli():
         input("\nPresiona Enter para continuar...")
 
 
+def scouting_menu():
+    from src.scouting.scout_engine import ScoutEngine
+    from src.scouting.tactical_profile import TACTICAL_PROFILES
+
+    print("\n🎯 MÓDULO DE SCOUTING Y PROFILES TÁCTICOS")
+    print("-" * 50)
+    print("Perfiles disponibles:")
+    for i, (code, profile) in enumerate(TACTICAL_PROFILES.items(), 1):
+        print(f"  {i}. {profile.name} [{code}] - {profile.description}")
+
+    p_choice = input("\nSelecciona un perfil (número): ").strip()
+    keys = list(TACTICAL_PROFILES.keys())
+
+    if not p_choice.isdigit() or int(p_choice) < 1 or int(p_choice) > len(keys):
+        print("❌ Perfil inválido.")
+        return
+
+    selected_code = keys[int(p_choice) - 1]
+
+    max_age_in = input("Edad máxima (deja en blanco para omitir): ").strip()
+    max_age = int(max_age_in) if max_age_in.isdigit() else None
+
+    db = SessionLocal()
+    engine = ScoutEngine(db)
+    matches = engine.search_candidates(selected_code, max_age=max_age)
+    db.close()
+
+    print("\n" + "=" * 60)
+    print(f"🔎 RESULTADOS SCOUTING - PERFIL: {selected_code}")
+    print("=" * 60)
+    print(f"{'Ranking':<8} | {'Nombre':<20} | {'Edad':<5} | {'Compatibilidad'}")
+    print("-" * 60)
+
+    if not matches:
+        print("No se encontraron candidatos que cumplan los criterios.")
+        return
+
+    for idx, match in enumerate(matches, 1):
+        p = match.player
+        print(f"#{idx:<7} | {p.name:<20} | {p.age:<5} | {match.compatibility_score}%")
+    print("=" * 60)
