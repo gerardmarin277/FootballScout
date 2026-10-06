@@ -74,6 +74,8 @@ def start_cli():
         print("2. 🔍 Ver detalle de un jugador")
         print("3. 📥 Importar jugadores desde CSV (data/raw/players.csv)")
         print("4. 🎯 Scouting por Perfil Táctico")
+        print("5. ⚔️ Comparar 2 jugadores side-by-side")
+        print("6. 📄 Generar Scouting Report completo")
         print("0. 🚪 Salir")
         
         choice = input("\nSelecciona una opción: ").strip()
@@ -87,6 +89,10 @@ def start_cli():
             import_players_from_csv("data/raw/players.csv")
         elif choice == "4":
             scouting_menu()
+        elif choice == "5":
+            compare_players_menu()
+        elif choice == "6":
+            generate_report_menu()
         elif choice == "0":
             print("\n👋 ¡Hasta pronto scout!\n")
             break
@@ -137,3 +143,73 @@ def scouting_menu():
         p = match.player
         print(f"#{idx:<7} | {p.name:<20} | {p.age:<5} | {match.compatibility_score}%")
     print("=" * 60)
+
+
+
+def compare_players_menu():
+    from src.analysis.comparator import PlayerComparator
+
+    print("\n⚔️ COMPARADOR DE JUGADORES SIDE-BY-SIDE")
+    print("-" * 50)
+    id_a = input("Introduce el ID del primer jugador (Player A): ").strip()
+    id_b = input("Introduce el ID del segundo jugador (Player B): ").strip()
+
+    if not id_a.isdigit() or not id_b.isdigit():
+        print("❌ IDs inválidos.")
+        return
+
+    db = SessionLocal()
+    repo = PlayerRepository(db)
+    p_a = repo.get_by_id(int(id_a))
+    p_b = repo.get_by_id(int(id_b))
+    db.close()
+
+    if not p_a or not p_b:
+        print("❌ Uno o ambos jugadores no existen.")
+        return
+
+    res = PlayerComparator.compare(p_a, p_b)
+
+    print("\n" + "=" * 60)
+    print(f"{'ATRIBUTO':<18} | {p_a.name[:15]:<15} | {p_b.name[:15]:<15} | {'DIFERENCIA'}")
+    print("=" * 60)
+    for stat, diff in res.stat_diffs.items():
+        val_a = getattr(p_a.statistics, stat, 0)
+        val_b = getattr(p_b.statistics, stat, 0)
+        diff_str = f"+{diff}" if diff > 0 else f"{diff}"
+        print(f"{stat.capitalize():<18} | {val_a:<15} | {val_b:<15} | {diff_str}")
+    print("=" * 60)
+
+
+def generate_report_menu():
+    from src.analysis.reports import ReportGenerator
+    from src.scouting.tactical_profile import TACTICAL_PROFILES
+
+    player_id = input("\nIntroduce el ID del jugador para el informe: ").strip()
+    if not player_id.isdigit():
+        print("❌ ID no válido.")
+        return
+
+    db = SessionLocal()
+    repo = PlayerRepository(db)
+    player = repo.get_by_id(int(player_id))
+    db.close()
+
+    if not player:
+        print("❌ Jugador no encontrado.")
+        return
+
+    print("\nSelecciona el Perfil Táctico para la evaluación:")
+    for i, (code, profile) in enumerate(TACTICAL_PROFILES.items(), 1):
+        print(f"  {i}. {profile.name}")
+
+    p_choice = input("Opción: ").strip()
+    keys = list(TACTICAL_PROFILES.keys())
+
+    if not p_choice.isdigit() or int(p_choice) < 1 or int(p_choice) > len(keys):
+        print("❌ Perfil inválido.")
+        return
+
+    selected_profile = TACTICAL_PROFILES[keys[int(p_choice) - 1]]
+    report_text = ReportGenerator.generate_scouting_report(player, selected_profile)
+    print("\n" + report_text)
