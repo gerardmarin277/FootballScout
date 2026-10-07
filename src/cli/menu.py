@@ -76,6 +76,7 @@ def start_cli():
         print("4. 🎯 Scouting por Perfil Táctico")
         print("5. ⚔️ Comparar 2 jugadores side-by-side")
         print("6. 📄 Generar Scouting Report completo")
+        print("7. 📈 Analítica Global y Generación de Gráficos")
         print("0. 🚪 Salir")
         
         choice = input("\nSelecciona una opción: ").strip()
@@ -93,6 +94,8 @@ def start_cli():
             compare_players_menu()
         elif choice == "6":
             generate_report_menu()
+        elif choice == "7":
+            analytics_menu()
         elif choice == "0":
             print("\n👋 ¡Hasta pronto scout!\n")
             break
@@ -213,3 +216,37 @@ def generate_report_menu():
     selected_profile = TACTICAL_PROFILES[keys[int(p_choice) - 1]]
     report_text = ReportGenerator.generate_scouting_report(player, selected_profile)
     print("\n" + report_text)
+
+
+def analytics_menu():
+    from src.analysis.statistics import AnalyticsEngine
+    from src.analysis.charts import ChartGenerator
+
+    db = SessionLocal()
+    engine = AnalyticsEngine(db)
+    stats = engine.get_summary_stats()
+    df = engine.get_players_dataframe()
+    db.close()
+
+    if not stats:
+        print("❌ No hay suficientes datos para generar analítica.")
+        return
+
+    print("\n" + "=" * 50)
+    print("           📈 ANALÍTICA GLOBAL DE LA BASE DE DATOS         ")
+    print("=" * 50)
+    print(f"Total Jugadores:       {stats['total_players']}")
+    print(f"Edad Media:            {stats['avg_age']} años")
+    print(f"Valor de Mercado M.:   {stats['avg_market_value']} M€")
+    print(f"Jugador más Valioso:   {stats['top_value_player']}")
+    print(f"Media Ritmo (Pace):    {stats['avg_pace']}")
+    print(f"Media Pase (Passing):  {stats['avg_passing']}")
+    print("=" * 50)
+
+    gen_charts = input("\n¿Deseas generar los gráficos analíticos en /reports? (S/N): ").strip().upper()
+    if gen_charts == "S":
+        chart_gen = ChartGenerator()
+        path1 = chart_gen.generate_age_distribution(df)
+        path2 = chart_gen.generate_pace_vs_age(df)
+        print(f"✅ Gráfico generado: {path1}")
+        print(f"✅ Gráfico generado: {path2}")

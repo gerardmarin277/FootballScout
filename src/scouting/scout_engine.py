@@ -39,6 +39,7 @@ class ScoutEngine:
         max_age: Optional[int] = None,
         max_market_value: Optional[float] = None,
         min_compatibility: float = 0.0,
+        
     ) -> List[ScoutMatch]:
         profile = TACTICAL_PROFILES.get(profile_code)
         if not profile:
